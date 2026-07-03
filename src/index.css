@@ -1,0 +1,61 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Oswald:wght@700&family=Space+Grotesk:wght@600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: Manrope, sans-serif;
+}
+
+.font-heading {
+  font-family: 'Oswald', 'Space Grotesk', sans-serif;
+  font-weight: 700;
+}
+
+.nav-link {
+  border: 0;
+  background: transparent;
+  padding: 0.5rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.16em;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 220ms ease, opacity 220ms ease;
+}
+
+.nav-link:hover {
+  transform: translateY(-1px);
+  opacity: 0.85;
+}
+
+.chip {
+  border: 1px solid rgba(82, 98, 127, 0.35);
+  background: transparent;
+  padding: 0.45rem 0.72rem;
+  border-radius: 0.7rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: transform 180ms ease;
+}
+
+.chip:hover {
+  transform: scale(1.04);
+}
