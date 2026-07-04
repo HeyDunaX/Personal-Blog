@@ -39,16 +39,32 @@ export const getArticlesFromDb = async () => {
   if (!response.ok) {
     throw new Error(`Failed to fetch articles: ${response.statusText}`);
   }
-  return response.json();
+  const data = await response.json();
+  return data.map((art) => ({
+    id: art.id,
+    title: art.title,
+    abstract: art.abstract,
+    date: art.date,
+    url: art.url,
+    coverImage: art.coverimage || art.cover_image || art.coverImage
+  }));
 };
 
 export const insertArticleToDb = async (article) => {
   if (!isSupabaseConfigured()) {
     throw new Error('Supabase is not configured');
   }
+  const dbArticle = {
+    id: article.id,
+    title: article.title,
+    abstract: article.abstract,
+    date: article.date,
+    url: article.url,
+    coverimage: article.coverImage
+  };
   const response = await fetch(`${supabaseUrl}/rest/v1/articles`, {
     method: 'POST',
-    body: JSON.stringify(article),
+    body: JSON.stringify(dbArticle),
     headers: {
       ...getHeaders(),
       Prefer: 'return=representation'
