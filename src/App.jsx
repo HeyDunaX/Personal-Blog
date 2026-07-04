@@ -7,11 +7,27 @@ import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { useDeviceMotionSafe } from './hooks/useDeviceMotionSafe';
 import { useMouseParallax } from './hooks/useMouseParallax';
+import { isSupabaseConfigured, getArticlesFromDb, insertArticleToDb, deleteArticleFromDb } from './utils/supabase';
 
 const News = lazy(() => import('./components/News'));
 const AdminModal = lazy(() => import('./components/AdminModal'));
 
 const seedArticles = [];
+
+const translateText = async (text, targetLang) => {
+  if (!text || !text.trim()) return '';
+  try {
+    const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`);
+    const data = await res.json();
+    if (data && data[0]) {
+      return data[0].map(x => x[0]).join('');
+    }
+    return text;
+  } catch (error) {
+    console.error(`Translation error to ${targetLang}:`, error);
+    return text;
+  }
+};
 
 const coverPool = [
   'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1600&q=80',
@@ -44,6 +60,19 @@ function AppShell() {
   });
 
   const [adminOpen, setAdminOpen] = useState(false);
+
+  // Load articles from Supabase on mount (fallback to localStorage if not configured)
+  useEffect(() => {
+    if (isSupabaseConfigured()) {
+      getArticlesFromDb()
+        .then((dbArticles) => {
+          setArticles(dbArticles);
+        })
+        .catch((err) => {
+          console.error('Failed to load articles from Supabase, using localStorage fallback:', err);
+        });
+    }
+  }, []);
 
   // Persist articles in localStorage when state changes
   useEffect(() => {
@@ -95,14 +124,35 @@ function AppShell() {
             : customDate || new Date().toISOString().slice(0, 10);
         }
 
+        const rawTitle = title || `Imported from ${new URL(url).hostname.replace('www.', '')}`;
+        const rawAbstract = description || 'No abstract available.';
+
+        // Perform translations in parallel
+        const [titleEn, titleVi, abstractEn, abstractVi] = await Promise.all([
+          translateText(rawTitle, 'en'),
+          translateText(rawTitle, 'vi'),
+          translateText(rawAbstract, 'en'),
+          translateText(rawAbstract, 'vi')
+        ]);
+
         const entry = {
           id: crypto.randomUUID(),
-          title: title || `Imported from ${new URL(url).hostname.replace('www.', '')}`,
-          abstract: description || 'No abstract available.',
+          title: {
+            en: titleEn,
+            vi: titleVi
+          },
+          abstract: {
+            en: abstractEn,
+            vi: abstractVi
+          },
           date: parsedDate,
           url,
           coverImage: image?.url || (typeof image === 'string' ? image : coverPool[Math.floor(Math.random() * coverPool.length)])
         };
+
+        if (isSupabaseConfigured()) {
+          await insertArticleToDb(entry);
+        }
 
         setArticles((prev) => {
           const updated = [entry, ...prev];
@@ -130,18 +180,40 @@ function AppShell() {
 
       const entry = {
         id: crypto.randomUUID(),
-        title: `Imported: Insights from ${hostname}`,
-        abstract: 'Failed to retrieve article description automatically.',
+        title: {
+          en: `Imported: Insights from ${hostname}`,
+          vi: `Đã nhập: Tin tức từ ${hostname}`
+        },
+        abstract: {
+          en: 'Failed to retrieve article description automatically.',
+          vi: 'Không thể tự động lấy mô tả bài viết.'
+        },
         date: parsedDate,
         url,
         coverImage: coverPool[Math.floor(Math.random() * coverPool.length)]
       };
+
+      if (isSupabaseConfigured()) {
+        await insertArticleToDb(entry);
+      }
 
       setArticles((prev) => {
         const updated = [entry, ...prev];
         return updated.sort((a, b) => new Date(b.date) - new Date(a.date));
       });
     }
+  };
+
+  const handleDeleteArticle = async (id) => {
+    if (isSupabaseConfigured()) {
+      try {
+        await deleteArticleFromDb(id);
+      } catch (dbErr) {
+        console.error('Failed to delete from Supabase database:', dbErr);
+        throw dbErr;
+      }
+    }
+    setArticles((prev) => prev.filter((a) => a.id !== id));
   };
 
   return (
@@ -163,7 +235,7 @@ function AppShell() {
 
         <div ref={newsRef}>
           <Suspense fallback={<div className="px-4 py-24 md:px-10" />}>
-            <News articles={articles} />
+            <News articles={articles} onDelete={handleDeleteArticle} />
           </Suspense>
         </div>
       </main>
