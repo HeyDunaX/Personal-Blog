@@ -18,7 +18,7 @@ function FeaturedCard({ article, onOpen, themeName, t, onDelete }) {
       onClick={() => onOpen(article.url)}
       className="group relative cursor-pointer overflow-hidden rounded-[4px]"
     >
-      <div className="relative h-[250px] sm:h-[330px] md:h-[490px]">
+      <div className="relative h-[280px] sm:h-[340px] md:h-[490px]">
         <img src={article.coverImage} alt={displayTitle} className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]" />
 
         <div
@@ -31,11 +31,11 @@ function FeaturedCard({ article, onOpen, themeName, t, onDelete }) {
           }}
         />
 
-        <div className="absolute inset-x-0 bottom-0 p-6 md:p-8">
-          <h3 className="max-w-2xl font-heading text-[2.05rem] font-extrabold leading-[1.03] text-white md:text-[2.45rem]">
+        <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6 md:p-8">
+          <h3 className="max-w-2xl font-heading text-[1.35rem] sm:text-[1.8rem] md:text-[2.45rem] font-extrabold leading-[1.1] sm:leading-[1.03] text-white">
             {displayTitle}
           </h3>
-          <p className="mt-3 max-w-3xl text-[1.04rem] leading-relaxed text-slate-200 md:text-[1.15rem]">
+          <p className="mt-2 sm:mt-3 max-w-3xl text-[0.82rem] sm:text-[0.95rem] md:text-[1.15rem] leading-relaxed text-slate-200 line-clamp-3 sm:line-clamp-none">
             {displayAbstract}
           </p>
         </div>

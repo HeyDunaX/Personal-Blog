@@ -24,8 +24,8 @@ export default function Navbar({ onAboutClick, onNewsClick, onAdminOpen }) {
           LONG
         </div>
 
-        {/* Absolute centered navigation links */}
-        <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-4 sm:gap-6 md:gap-10 z-10">
+        {/* Absolute centered navigation links on sm+, inline flex on mobile */}
+        <div className="sm:absolute sm:left-1/2 sm:-translate-x-1/2 flex items-center gap-2 sm:gap-6 md:gap-10 z-10">
           <button className="nav-link font-heading text-xs tracking-[0.2em] font-semibold" style={{ color: theme.secondary }} onClick={onAboutClick}>
             ABOUT
           </button>
