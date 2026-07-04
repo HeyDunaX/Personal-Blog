@@ -11,72 +11,7 @@ import { useMouseParallax } from './hooks/useMouseParallax';
 const News = lazy(() => import('./components/News'));
 const AdminModal = lazy(() => import('./components/AdminModal'));
 
-const seedArticles = [
-  {
-    id: 'a1',
-    title: 'From College Thesis to Q1 Publication',
-    abstract: 'Research by lecturers and students from Ho Chi Minh City University of Technology opens up new ways to improve the reliability of large language models in multiple-choice question tasks.',
-    date: '2026-06-20',
-    url: 'https://example.com/rag-vietnamese',
-    coverImage: 'https://images.unsplash.com/photo-1518773553398-650c184e0bb3?auto=format&fit=crop&w=1600&q=80'
-  },
-  {
-    id: 'a2',
-    title: 'HCMUT student co-authors over 20 international AI publications',
-    abstract: 'From Nguyen Song Thien Long (2005), a junior in Computer Science at HCMUT, research began not with grand ideas but with small tasks: reading literature, processing data, and revising papers.',
-    date: '2026-06-12',
-    url: 'https://example.com/low-resource-nlp',
-    coverImage: 'https://images.unsplash.com/photo-1555949963-aa79dcee981c?auto=format&fit=crop&w=1200&q=80'
-  },
-  {
-    id: 'a3',
-    title: "Listening to a youth member's answer to the question: What if my life is never meant to shine?",
-    abstract: 'While social media is still wrestling with the question, What if my life is never meant to shine?, outstanding Youth Union members have found their own answers through their journey of community service.',
-    date: '2026-06-05',
-    url: 'https://example.com/hybrid-ranking',
-    coverImage: 'https://images.unsplash.com/photo-1516321497487-e288fb19713f?auto=format&fit=crop&w=1200&q=80'
-  },
-  {
-    id: 'a4',
-    title: "Expanding foreign language playgrounds for youth",
-    abstract: 'At the Forum Youth Voices - Youth Union Actions, many participants emphasized that instead of just learning theory, young people should be immersed in environments where they can use foreign languages regularly through clubs and international exchange programs.',
-    date: '2026-05-28',
-    url: 'https://example.com/prompt-eval',
-    coverImage: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1200&q=80'
-  },
-  {
-    id: 'a5',
-    title: 'Placing deep trust and high expectations',
-    abstract: 'Looking forward to the national festival, young people across the country have expressed their deep trust and high expectations. They hope each ballot will select virtuous, talented, and public-oriented representatives who can promptly deliver breakthrough policies.',
-    date: '2026-05-20',
-    url: 'https://example.com/academic-search',
-    coverImage: 'https://images.unsplash.com/photo-1517430816045-df4b7de11d1d?auto=format&fit=crop&w=1200&q=80'
-  },
-  {
-    id: 'a6',
-    title: "The journey of a Gen Z from the 'coconut land' to the vast ocean of AI",
-    abstract: "Nguyen Song Thien Long, an outstanding recipient of the Student of 5 Merits title, has carved out an impressive journey from a village school to the world of computer science and artificial intelligence.",
-    date: '2026-05-10',
-    url: 'https://example.com/transformer-adaptation',
-    coverImage: 'https://images.unsplash.com/photo-1484417894907-623942c8ee29?auto=format&fit=crop&w=1200&q=80'
-  },
-  {
-    id: 'a7',
-    title: 'HCMUT student researches AI for cultural and language preservation',
-    abstract: 'Nguyen Song Thien Long, a third-year Computer Science student at Ho Chi Minh City University of Technology, is the author of over 20 scientific works published at prestigious conferences and journals.',
-    date: '2026-05-03',
-    url: 'https://example.com/cultural-language-ai',
-    coverImage: 'https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=1200&q=80'
-  },
-  {
-    id: 'a8',
-    title: 'Ready to empower international scientific publications',
-    abstract: 'Leading universities and scientists are ready to accompany and provide comprehensive support to help students progress faster and stay on the right track toward international scientific publication.',
-    date: '2026-04-28',
-    url: 'https://example.com/international-publication-support',
-    coverImage: 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=1200&q=80'
-  }
-];
+const seedArticles = [];
 
 const coverPool = [
   'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1600&q=80',
@@ -97,13 +32,15 @@ function AppShell() {
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
-          return parsed.sort((a, b) => new Date(b.date) - new Date(a.date));
+          // Filter out the old seed articles ('a1' to 'a8')
+          const filtered = parsed.filter(a => !['a1', 'a2', 'a3', 'a4', 'a5', 'a6', 'a7', 'a8'].includes(a.id));
+          return filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
         } catch (e) {
           console.error('Failed to parse saved articles:', e);
         }
       }
     }
-    return [...seedArticles].sort((a, b) => new Date(b.date) - new Date(a.date));
+    return [];
   });
 
   const [adminOpen, setAdminOpen] = useState(false);
@@ -130,37 +67,81 @@ function AppShell() {
   };
 
   const mockScrapeImport = async (url, customDate) => {
-    await new Promise((resolve) => setTimeout(resolve, 850));
+    try {
+      const response = await fetch(`https://api.microlink.io/?url=${encodeURIComponent(url)}`);
+      const result = await response.json();
 
-    const hostname = (() => {
-      try {
-        return new URL(url).hostname.replace('www.', '');
-      } catch {
-        return 'external-source';
+      if (result.status === 'success') {
+        const { title, description, image, date } = result.data;
+
+        // Determine date.
+        // 1. Try date from Microlink.
+        // 2. Try date from URL path.
+        // 3. Try customDate (user-selected in UI).
+        // 4. Default to today's date.
+        let parsedDate = '';
+        if (date) {
+          try {
+            parsedDate = new Date(date).toISOString().slice(0, 10);
+          } catch {
+            // Ignore date parsing error
+          }
+        }
+        
+        if (!parsedDate) {
+          const dateMatch = url.match(/(\d{4})[-/](\d{2})[-/](\d{2})/);
+          parsedDate = dateMatch 
+            ? `${dateMatch[1]}-${dateMatch[2]}-${dateMatch[3]}`
+            : customDate || new Date().toISOString().slice(0, 10);
+        }
+
+        const entry = {
+          id: crypto.randomUUID(),
+          title: title || `Imported from ${new URL(url).hostname.replace('www.', '')}`,
+          abstract: description || 'No abstract available.',
+          date: parsedDate,
+          url,
+          coverImage: image?.url || (typeof image === 'string' ? image : coverPool[Math.floor(Math.random() * coverPool.length)])
+        };
+
+        setArticles((prev) => {
+          const updated = [entry, ...prev];
+          return updated.sort((a, b) => new Date(b.date) - new Date(a.date));
+        });
+      } else {
+        throw new Error(result.message || 'Microlink API failed');
       }
-    })();
+    } catch (error) {
+      console.error('Failed to scrape metadata:', error);
+      
+      // Fallback behavior if Microlink fails (like connection or parsing issues)
+      const hostname = (() => {
+        try {
+          return new URL(url).hostname.replace('www.', '');
+        } catch {
+          return 'external-source';
+        }
+      })();
 
-    // Attempt to extract date from URL, fallback to user date or today
-    const dateMatch = url.match(/(\d{4})[-/](\d{2})[-/](\d{2})/);
-    const parsedDate = dateMatch 
-      ? `${dateMatch[1]}-${dateMatch[2]}-${dateMatch[3]}`
-      : customDate || new Date().toISOString().slice(0, 10);
+      const dateMatch = url.match(/(\d{4})[-/](\d{2})[-/](\d{2})/);
+      const parsedDate = dateMatch 
+        ? `${dateMatch[1]}-${dateMatch[2]}-${dateMatch[3]}`
+        : customDate || new Date().toISOString().slice(0, 10);
 
-    const entry = {
-      id: crypto.randomUUID(),
-      title: `Imported: Insights from ${hostname}`,
-      abstract:
-        'Auto-generated abstract from mocked scraping pipeline. This simulates title and summary extraction from an external article URL.',
-      date: parsedDate,
-      url,
-      coverImage: coverPool[Math.floor(Math.random() * coverPool.length)]
-    };
+      const entry = {
+        id: crypto.randomUUID(),
+        title: `Imported: Insights from ${hostname}`,
+        abstract: 'Failed to retrieve article description automatically.',
+        date: parsedDate,
+        url,
+        coverImage: coverPool[Math.floor(Math.random() * coverPool.length)]
+      };
 
-    setArticles((prev) => {
-      const updated = [entry, ...prev];
-      // Sort articles: newest to oldest
-      return updated.sort((a, b) => new Date(b.date) - new Date(a.date));
-    });
+      setArticles((prev) => {
+        const updated = [entry, ...prev];
+        return updated.sort((a, b) => new Date(b.date) - new Date(a.date));
+      });
+    }
   };
 
   return (

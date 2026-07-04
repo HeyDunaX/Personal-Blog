@@ -8,17 +8,38 @@ export default function AdminModal({ open, onClose, onImport }) {
   const { themeName, theme } = useTheme();
   const [url, setUrl] = useState('');
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const handleClose = () => {
+    setUrl('');
+    setPassword('');
+    setError('');
+    onClose();
+  };
 
   const submit = async (event) => {
     event.preventDefault();
     if (!url.trim()) return;
 
+    if (password !== 'long@ura') {
+      setError(t({ en: 'Incorrect password', vi: 'Mật khẩu không chính xác' }));
+      return;
+    }
+
+    setError('');
     setLoading(true);
-    await onImport(url.trim(), date);
-    setLoading(false);
-    setUrl('');
-    onClose();
+    try {
+      await onImport(url.trim(), date);
+      setUrl('');
+      setPassword('');
+      onClose();
+    } catch (err) {
+      setError(t({ en: 'Failed to import article', vi: 'Lỗi khi nhập bài viết' }));
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -45,8 +66,8 @@ export default function AdminModal({ open, onClose, onImport }) {
             </h3>
             <p className="mt-2 text-sm" style={{ color: theme.secondary }}>
               {t({
-                en: 'Paste an external article URL to mock-scrape cover image, title and abstract.',
-                vi: 'Dán URL bài báo bên ngoài để mô phỏng trích xuất ảnh bìa, tiêu đề và tóm tắt.'
+                en: 'Paste an external article URL to scrape its cover image, title, abstract and date.',
+                vi: 'Dán URL bài báo bên ngoài để tự động cào ảnh bìa, tiêu đề, tóm tắt và ngày tháng.'
               })}
             </p>
 
@@ -72,7 +93,7 @@ export default function AdminModal({ open, onClose, onImport }) {
 
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: theme.secondary }}>
-                  {t({ en: 'Publish Date', vi: 'Ngày xuất bản' })}
+                  {t({ en: 'Publish Date (Fallback)', vi: 'Ngày xuất bản (Dự phòng)' })}
                 </label>
                 <input
                   type="date"
@@ -88,8 +109,35 @@ export default function AdminModal({ open, onClose, onImport }) {
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-3">
-                <button type="button" onClick={onClose} className="chip">
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: theme.secondary }}>
+                  {t({ en: 'Admin Password', vi: 'Mật khẩu quản trị' })}
+                </label>
+                <input
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (error) setError('');
+                  }}
+                  className="w-full rounded-xl border px-4 py-3 text-sm outline-none"
+                  placeholder="••••••••"
+                  style={{
+                    borderColor: themeName === 'dark' ? 'rgba(168,179,207,0.35)' : 'rgba(20,33,61,0.3)',
+                    backgroundColor: themeName === 'dark' ? '#0f172a' : '#ffffff',
+                    color: theme.text
+                  }}
+                />
+                {error && (
+                  <p className="mt-1.5 text-xs text-red-500 font-semibold">
+                    {error}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button type="button" onClick={handleClose} className="chip">
                   {t({ en: 'Cancel', vi: 'Hủy' })}
                 </button>
                 <button
