@@ -1,5 +1,6 @@
 import { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion, useScroll, useTransform } from 'framer-motion';
+import Lenis from 'lenis';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import AboutMe from './components/AboutMe';
@@ -40,6 +41,30 @@ function AppShell() {
   const { theme } = useTheme();
   const motionEnabled = useDeviceMotionSafe();
   const mouse = useMouseParallax(motionEnabled);
+  const lenisRef = useRef(null);
+
+  useEffect(() => {
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      orientation: 'vertical',
+      gestureOrientation: 'vertical',
+      smoothWheel: true,
+    });
+    lenisRef.current = lenis;
+
+    function raf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+
+    requestAnimationFrame(raf);
+
+    return () => {
+      lenis.destroy();
+      lenisRef.current = null;
+    };
+  }, []);
 
   // Load initial articles from localStorage, default to sorted seedArticles
   const [articles, setArticles] = useState(() => {
@@ -92,7 +117,11 @@ function AppShell() {
 
   const smoothScrollTo = (ref) => {
     if (!ref.current) return;
-    ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (lenisRef.current) {
+      lenisRef.current.scrollTo(ref.current);
+    } else {
+      ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   };
 
   const mockScrapeImport = async (url, customDate) => {

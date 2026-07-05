@@ -27,7 +27,7 @@ export default function Hero({ mouse, motionEnabled, onReadMe }) {
 
   return (
     <section className="relative min-h-screen overflow-hidden px-4 pb-16 pt-28 md:px-10 flex flex-col justify-center" id="hero">
-      <ParticleCanvas enabled={motionEnabled} mouse={mouse} themeName={themeName} />
+      <ParticleCanvas enabled={true} mouse={mouse} themeName={themeName} />
 
       <div
         className="pointer-events-none absolute -left-12 top-28 h-64 w-64 rounded-full blur-[120px]"
@@ -71,7 +71,7 @@ export default function Hero({ mouse, motionEnabled, onReadMe }) {
 
         {/* Center column: Outer container handles entry animation, aligned to the bottom */}
         <motion.div
-          className="relative mx-auto w-[280px] h-[420px] lg:w-[380px] lg:h-[570px] xl:w-[460px] xl:h-[690px] 2xl:w-[530px] 2xl:h-[800px] z-10 self-end mt-auto -mb-14 lg:-mb-[5.5rem] xl:-mb-24 2xl:-mb-28"
+          className="relative mx-auto w-[300px] h-[460px] lg:w-[400px] lg:h-[620px] xl:w-[490px] xl:h-[760px] 2xl:w-[570px] 2xl:h-[880px] z-10 self-end mt-auto -mb-16 lg:-mb-[6.5rem] xl:-mb-28 2xl:-mb-32"
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.1 }}
@@ -97,10 +97,12 @@ export default function Hero({ mouse, motionEnabled, onReadMe }) {
             <img
               src="/Long-Raw-Photoroom.png"
               alt="Long Nguyen"
-              className="relative z-10 h-full w-full object-contain"
+              className="relative z-10 h-full w-full object-contain object-bottom"
               style={{
                 transform: `translate3d(${tx * 0.22}px, ${avatarLift}px, 0)`,
-                filter: themeName === 'dark' ? 'drop-shadow(0 20px 36px rgba(1,45,137,0.45))' : 'drop-shadow(0 16px 28px rgba(20,33,61,0.18))'
+                filter: themeName === 'dark' ? 'drop-shadow(0 20px 36px rgba(1,45,137,0.45))' : 'drop-shadow(0 16px 28px rgba(20,33,61,0.18))',
+                maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 80%, rgba(0,0,0,0) 100%)',
+                WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 80%, rgba(0,0,0,0) 100%)'
               }}
             />
           </div>
@@ -149,7 +151,7 @@ export default function Hero({ mouse, motionEnabled, onReadMe }) {
 
         {/* Center Avatar with glow */}
         <motion.div
-          className="relative h-[360px] w-[240px] mb-8"
+          className="relative h-[410px] w-[260px] mb-8"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.1 }}
@@ -164,9 +166,11 @@ export default function Hero({ mouse, motionEnabled, onReadMe }) {
           <img
             src="/Long-Raw-Photoroom.png"
             alt="Long Nguyen"
-            className="relative z-10 h-full w-full object-contain"
+            className="relative z-10 h-full w-full object-contain object-bottom"
             style={{
-              filter: themeName === 'dark' ? 'drop-shadow(0 20px 36px rgba(1,45,137,0.45))' : 'drop-shadow(0 16px 28px rgba(20,33,61,0.18))'
+              filter: themeName === 'dark' ? 'drop-shadow(0 20px 36px rgba(1,45,137,0.45))' : 'drop-shadow(0 16px 28px rgba(20,33,61,0.18))',
+              maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 80%, rgba(0,0,0,0) 100%)',
+              WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 80%, rgba(0,0,0,0) 100%)'
             }}
           />
         </motion.div>
